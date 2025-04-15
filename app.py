@@ -1,42 +1,59 @@
 import os
-from flask import Flask, request, redirect, url_for, send_from_directory, render_template
+import cv2
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app = Flask(__name__)  # CORRIGIDO: __name__ (não _name_)
 
-app = Flask(__name__)
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Verifica se a extensão é permitida
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# ROTA 1: Página HTML
+# ROTA 1 - Página inicial
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# ROTA 2: Upload da imagem
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return 'Nenhum arquivo enviado', 400
-    file = request.files['file']
-    if file.filename == '':
-        return 'Nome de arquivo vazio', 400
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        return {'path': file_path}, 200
-    return 'Arquivo não permitido', 400
-
-# ROTA 3: Acesso às imagens salvas
+# ROTA 3 - Acessar imagem original ou processada
 @app.route('/image/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    return send_file(file)
 
+# ROTA 2 - Upload e processamento da imagem
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image file uploaded'}), 400
+
+    image = request.files['image']
+
+    if image.filename == '':
+        return jsonify({'error': 'Empty filename'}), 400
+
+    filename = secure_filename(image.filename)
+    original_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    image.save(original_path)
+
+    # --- PROCESSAMENTO COM FILTRO DE CANNY (OpenCV) ---
+    img = cv2.imread(original_path, cv2.IMREAD_GRAYSCALE)
+    edges = cv2.Canny(img, 100, 200)
+
+    processed_filename = f"processed_{filename}"
+    processed_path = os.path.join(app.config['UPLOAD_FOLDER'], processed_filename)
+    cv2.imwrite(processed_path, edges)
+
+    # --- JSON DE RETORNO (TO DO – PT2) ---
+    return jsonify({
+        "datetime": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "image": f"/image/{filename}",
+        "image_proc": f"/image/{processed_filename}",
+        "ip": request.remote_addr
+    })
+
+# Execução da aplicação
 if __name__ == '__main__':
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Cria pasta se não existir
-    app.run(debug=True, host='0.0.0.0')  # host='0.0.0.0' pra acessar na VM
+    app.run(host='0.0.0.0', debug=True)
