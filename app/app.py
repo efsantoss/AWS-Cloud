@@ -3,10 +3,11 @@ import cv2
 import sqlite3
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_file
+import urllib.parse  # biblioteca para manipulação de URL (erro de show)
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = 'app/uploads'
 DATABASE = 'database/db_cloud.db'
 
 if not os.path.exists(UPLOAD_FOLDER):
@@ -41,8 +42,15 @@ def index():
 
 @app.route('/image/<filename>')
 def uploaded_file(filename):
-    file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    return send_file(file)
+    # Decodificando o nome do arquivo para garantir que espaços e caracteres especiais sejam tratados
+    filename = urllib.parse.unquote(filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    
+    # Verificando se o arquivo existe
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'File not found'}), 404
+    
+    return send_file(file_path)
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
@@ -75,7 +83,10 @@ def upload_image():
     conn.commit()
     conn.close()
 
-    return render_template('index.html', image_proc=f"/image/{processed_filename}")
-    
+    # Enviando o nome da imagem processada de forma segura para a URL
+    processed_filename_url = urllib.parse.quote(processed_filename)
+
+    return render_template('index.html', image_proc=f"/image/{processed_filename_url}")
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
