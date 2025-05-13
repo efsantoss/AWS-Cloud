@@ -1,0 +1,23 @@
+# Etapa 1: imagem base
+FROM python:3.9-slim
+
+# Etapa 2: diretório de trabalho
+WORKDIR /app
+
+# Etapa 3: copiar arquivos
+COPY . /app
+
+# Etapa 4: instalar dependências
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Etapa 5: criar pastas necessárias
+RUN mkdir -p uploads database
+
+# Etapa 6: definir variáveis de ambiente
+ENV FLASK_ENV=production
+
+# Etapa 7: expor a porta do Flask
+EXPOSE 5000
+
+# Etapa 8: comando de execução
+CMD ["python", "app.py"]

@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  flask-app:
+    build: .
+    container_name: flask-image-processor
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./database:/app/database
+    restart: unless-stopped

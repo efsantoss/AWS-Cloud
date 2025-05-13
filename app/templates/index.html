@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload de Imagem</title>
+</head>
+<body>
+    <h1>Enviar Imagem</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" required>
+        <button type="submit">Enviar</button>
+    </form>
+
+    {% if image_proc %}
+        <h2>Imagem Processada:</h2>
+        <img src="{{ image_proc }}" alt="Imagem Processada" style="max-width: 400px;">
+    {% endif %}
+</body>
+</html>
