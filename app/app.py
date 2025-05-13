@@ -83,7 +83,7 @@ def upload_image():
     conn.commit()
     conn.close()
 
-    # Enviando o nome da imagem processada de forma segura para a URL
+    # Enviando o nome da imagem processada de forma segura para a URL (melhoria chatgpt)
     processed_filename_url = urllib.parse.quote(processed_filename)
 
     return render_template('index.html', image_proc=f"/image/{processed_filename_url}")
