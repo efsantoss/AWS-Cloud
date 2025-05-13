@@ -1,6 +1,6 @@
 # 🖼️ Flask Image Processor - AWS Cloud Project
 
-Este repositório contém um projeto desenvolvido na trilha formativa de **Cloud**, oferecida pela **AWS**, utilizando **Python**, **Flask**, **OpenCV**, **SQLite** e **Docker**.
+Este repositório contém um projeto desenvolvido na trilha formativa de **Cloud**, oferecida pela **PUC Campinas em parceria com AWS**, utilizando **Python**, **Flask**, **OpenCV**, **SQLite** e **Docker**.
 
 ---
 
